@@ -13,6 +13,7 @@ namespace Network::Client{
             Client();
             int CreateTCPConnection();
             int SendMessage();
+            void SendFile();
     };
 }
 
