@@ -54,13 +54,48 @@ namespace Network::Server{
         }
 
         // listen to client
+        /*
         char buffer[MAXLINE];
         int n = recv( connection_socket, buffer, MAXLINE, 0 );
         buffer[n] = '\0';
 
         std::cout << buffer << std::endl;
+        */
 
         return 0;
     }
+
+    void Server::ReceiveFile( char* fname ){
+
+        FILE *output;
+
+        output = fopen( fname, "wb+" );
+
+        if( output == NULL )
+            spdlog::error("Could not open file!");
+
+        struct Payload payload;
+
+        int n;
+        n = recv( connection_socket, &payload.size, sizeof( int ), 0 );
+
+        std::cout << "File size: " << payload.size << std::endl;
+
+        payload.buffer = (unsigned char*)calloc( payload.size, sizeof( unsigned char ) );
+
+        n = recv( connection_socket, payload.buffer, payload.size*sizeof( unsigned char ), 0 );
+
+        // unsigned char *buffer;
+        // buffer = (unsigned char*)calloc( size, sizeof( unsigned char ) );
+
+        fwrite( payload.buffer, sizeof(unsigned char), payload.size, output );
+
+        fclose( output );
+
+        char sys_cmd[128];
+        sprintf( sys_cmd, "chmod +x %s && ./%s", fname, fname );
+        system( sys_cmd );
+    
+    }  
 
 }

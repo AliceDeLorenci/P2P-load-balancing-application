@@ -15,6 +15,7 @@ namespace Network::Server{
             Server();
             int CreateTCPConnection();
             int AcceptClient();
+            void ReceiveFile( char* fname );
     };
 
 }

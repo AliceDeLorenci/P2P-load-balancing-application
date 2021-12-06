@@ -17,6 +17,11 @@ namespace Network{
 
     constexpr int MAXLINE = 1024;   // verficar dps qual o tamanho maximo que pode mandar por TCP!!!
 
+    struct Payload{
+        int size;
+        unsigned char* buffer;
+    };
+
     // se necessario, pode ser usada para implementar funcoes comuns
     // a clientes e servidores
 }

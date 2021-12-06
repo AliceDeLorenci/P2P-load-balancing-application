@@ -10,18 +10,19 @@ int main (){
     Network::Server::Server servidor;
     servidor.CreateTCPConnection();
     servidor.AcceptClient();
-    //confiamos em você, código :)
+    char* fname = "copia";
+    servidor.ReceiveFile( fname );
     return 0;
 }
 #endif
 
 #ifdef CLIENT
 int main(){
-    //confiamos em você, cliente, você pode rodar também :)
     std::cout << "CLIENTE" << std::endl;
     Network::Client::Client client;
-    client.SendFile();
-    //client.CreateTCPConnection();
+    client.CreateTCPConnection();
+    char* fname = "teste";
+    client.SendFile( fname );
     //client.SendMessage();
 
     return 0;
