@@ -3,11 +3,14 @@
 ## TO DO
 
 - substituir ```system()``` por ```fork()```
-- ler e enviar o executável por blocos para não estourar o heap
+- ler e enviar o executável por blocos para evitar estouro de heap
 - ```htonl()```, ```ntohl()```
 
 ## P2P
 
+- https://github.com/mitrapinaki/PeerToPeer
+- https://github.com/taylorconor/p2psc
+- https://github.com/um4ng-tiw/Peer-to-Peer-Socket-C
 
 ## Execução
 
@@ -29,3 +32,4 @@ https://www.ibm.com/docs/en/zos/2.3.0?topic=directives-conditional-compilation
 - provavelmente a aplicação rodaria dentro de um container por segurança
 - peer to peer
 - mandar executável
+
