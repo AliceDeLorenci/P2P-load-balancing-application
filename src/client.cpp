@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-namespace Network::Client{
+namespace LoadBalancing::Network::Client{
 
     Client::Client(){}
 
@@ -74,4 +74,28 @@ namespace Network::Client{
         fclose( input );
     
     }  
+
+    int Client::CheckReceiveOutput(){
+        
+        int size;
+        recv( client_socket, &size, sizeof( int ), 0 );
+
+        return size;
+    }
+
+    void Client::ReceiveOutput(){
+
+        int size = 0;
+
+        while( (size = CheckReceiveOutput()) >= 0 ){
+
+            unsigned char* buffer;
+            buffer = (unsigned char*)calloc( size, sizeof( unsigned char ) );
+            recv( client_socket, buffer, size*sizeof( unsigned char ), 0 );
+
+            std::cout << buffer << std::endl;
+        }
+
+
+    }
 }

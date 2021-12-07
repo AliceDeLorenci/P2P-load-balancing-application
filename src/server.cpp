@@ -1,7 +1,8 @@
 #include "../header/server.h" 
+#include "../header/load_balancing.h"
 #include <iostream>
 
-namespace Network::Server{
+namespace LoadBalancing::Network::Server{
 
     Server::Server(){}
 
@@ -67,6 +68,8 @@ namespace Network::Server{
 
     void Server::ReceiveFile( char* fname ){
 
+        this->fname = fname;
+
         FILE *output;
 
         output = fopen( fname, "wb+" );
@@ -92,10 +95,61 @@ namespace Network::Server{
 
         fclose( output );
 
-        char sys_cmd[128];
-        sprintf( sys_cmd, "chmod +x %s && ./%s", fname, fname );
-        system( sys_cmd );
+        Executable exec( fname, ofname );
+        int exec_pid = exec.Execute();
+
+        SendOutput( exec_pid );
     
     }  
+
+    // void Server::StartSendingOutput(){
+
+    // }
+
+    void Server::SendOutput( int exec_pid ){
+
+        FILE* output;
+
+        if( !( output = fopen( ofname, "rb" ) ) )
+            spdlog::error("Could not open output file!");
+
+
+        int status;
+        int block_size, size, last_size = 0;
+        while( !waitpid( exec_pid, &status, WNOHANG ) ){
+
+            fseek( output, 0, SEEK_END );
+            size = ftell( output );
+
+            while( size > last_size ){ // if the file has increased, send block
+
+                block_size = size - last_size;
+
+                fseek( output, last_size, SEEK_SET );   // set file pointer to last position
+
+                send( connection_socket, &block_size, sizeof( int ), 0 );   // send block size
+
+                // send file block
+                unsigned char *buffer;
+                buffer = (unsigned char*)calloc( block_size, sizeof( unsigned char ) );
+                fread( buffer, sizeof(unsigned char), block_size*sizeof( unsigned char ), output );
+
+                send( connection_socket, buffer, block_size, 0 );
+
+                last_size = size;
+                fseek( output, 0, SEEK_END );
+                size = ftell( output );
+
+                // PROTOCOL: send -1 when EOF is reached
+
+            }
+
+            int flag = -1;
+            send( connection_socket, &flag, sizeof( int ), 0 );   // send block size
+
+        }
+
+
+    }
 
 }

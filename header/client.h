@@ -2,8 +2,9 @@
 #define CLIENT_H
 
 #include "network.h"
+#include <iostream>
 
-namespace Network::Client{
+namespace LoadBalancing::Network::Client{
     class Client{
         private:
             int port = 1234;
@@ -14,6 +15,8 @@ namespace Network::Client{
             int CreateTCPConnection();
             int SendMessage();
             void SendFile( char* fname );
+            void ReceiveOutput();
+            int CheckReceiveOutput();
     };
 }
 

@@ -1,5 +1,14 @@
 # SSC0904
 
+## TO DO
+
+- substituir ```system()``` por ```fork()```
+- ler e enviar o executável por blocos para não estourar o heap
+- ```htonl()```, ```ntohl()```
+
+## P2P
+
+
 ## Execução
 
 Compilar com:

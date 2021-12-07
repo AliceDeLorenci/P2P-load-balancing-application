@@ -13,7 +13,7 @@
 
 
 
-namespace Network{
+namespace LoadBalancing::Network{
 
     constexpr int MAXLINE = 1024;   // verficar dps qual o tamanho maximo que pode mandar por TCP!!!
 
