@@ -15,8 +15,9 @@
 
 namespace LoadBalancing::Network{
 
-    constexpr int MAXLINE = 1024;   // verficar dps qual o tamanho maximo que pode mandar por TCP!!!
+    constexpr int MAXLINE = 1024;   // verificar dps qual o tamanho maximo que pode mandar por TCP!!!
 
+    // payload that the client will send to the server containing the executable file
     struct Payload{
         int size;
         unsigned char* buffer;

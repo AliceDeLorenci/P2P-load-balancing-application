@@ -5,6 +5,7 @@
 - substituir ```system()``` por ```fork()```
 - ler e enviar o executável por blocos para evitar estouro de heap
 - ```htonl()```, ```ntohl()```
+- once the child process is up, it must be killed before the parent quits
 
 ## P2P
 

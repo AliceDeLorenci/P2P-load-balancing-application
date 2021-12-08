@@ -14,6 +14,7 @@ namespace LoadBalancing::Network::Peer{
 
         public:
             Peer();
+            virtual ~Peer();
             void AskForJob(char * fname);
             void ReceiveJobe(char * fname);
     };

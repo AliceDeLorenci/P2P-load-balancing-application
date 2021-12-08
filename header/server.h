@@ -7,19 +7,21 @@ namespace LoadBalancing::Network::Server{
 
     class Server{
         private:
-            int port = 1234;
-            int server_socket;
-            int connection_socket;
-            char* fname;            // received executable name
-            char* ofname = "output.txt";
+            int port;                   // server port
+            int server_socket;          // server socket (connection entry point)
+            int connection_socket;      // connection with client
+            char* efname;               // executable file name
+            char* ofname;               // file where the executable output will be saved
 
         public:
-            Server();
-            int CreateTCPConnection();
-            int AcceptClient();
-            void ReceiveFile( char* fname );
-            // void StartSendingOutput();
-            void SendOutput( int );
+            Server( int, char*, char* );
+            virtual ~Server();
+
+            int CreateTCPConnection();  // Open TCP connection      
+            int AcceptClient();         // Establish connection with client
+
+            int ReceiveFile( );        // Receives executable from client
+            void SendOutput( int );     // Sends executable output to client
     };
 
 }

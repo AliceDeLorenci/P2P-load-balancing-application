@@ -6,6 +6,8 @@ namespace LoadBalancing::Network::Peer{
 
     Peer::Peer(){}
 
+    Peer::~Peer(){}
+
     void Peer::AskForJob(char * fname){
 
         std::cout << "Asking for a job" << std::endl;

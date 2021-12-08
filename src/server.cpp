@@ -4,152 +4,149 @@
 
 namespace LoadBalancing::Network::Server{
 
-    Server::Server(){}
+    /**
+     * Constructor 
+     */
+    Server::Server( int port, char* efname, char* ofname ){
+        this->port = port;      // server port
+        this->efname = efname;  // name that will be given to the executable file
+        this->ofname = ofname;  // executable output file name
+    }
 
+    /**
+     * Destructor 
+     */
+    Server::~Server(){}
+
+    // Open TCP connection
     int Server::CreateTCPConnection(){
 
         // allocate a socket for the server
-        if ( (server_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-            spdlog::error("Failed to create TCP server socket.");
-            if (errno) perror("");
-            exit(EXIT_FAILURE);
-        }
+        if ( (server_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
+            ExitWithMessage( "Failed to create TCP server socket." );
 
         // attempt to stop port from blocking after repeated executions
         int allow = 1;
         if ( setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &allow, sizeof(int)) < 0 )
-            spdlog::error("Failed to create TCP server socket.");
+            ExitWithMessage( "Failed to configure TCP server socket." );
 
         // assign a port and IP address to the socket
         struct sockaddr_in addr;
         addr.sin_family = AF_INET;
         addr.sin_port = htons(port);
-        addr.sin_addr.s_addr = INADDR_ANY;          // LOCAL HOST
-        memset(&addr.sin_zero, 0, sizeof(addr.sin_zero));
+        addr.sin_addr.s_addr = INADDR_ANY;          // local host
+        memset( &addr.sin_zero, 0, sizeof(addr.sin_zero) );
 
-        if ( bind( server_socket, (struct sockaddr*)&addr, sizeof(addr)) < 0 ) {
-            spdlog::error("Failed to bind server socket.");
-            if (errno) perror("");
-            exit(EXIT_FAILURE);
-        }
+        if ( bind( server_socket, (struct sockaddr*)&addr, sizeof(addr)) < 0 )
+            ExitWithMessage( "Failed to bind server socket." );
 
         // start listening to clients
-        if ( listen( server_socket, 1 ) == -1) {
-            spdlog::error("Failed to listen to clients.");
-            if (errno) perror("");
-            return EXIT_FAILURE;
-        }
+        if ( listen( server_socket, 1 ) == -1) 
+            ExitWithMessage( "Failed to listen for clients." );
 
-        return 0;
+        return EXIT_SUCCESS;
     }
 
+    /**
+     *  Connect to client
+     */
     int Server::AcceptClient(){
 
-        std::cout << "Waiting for client..." << std::endl;
+        spdlog::info( "Waiting for client..." );
 
         // accept client
-        if( (connection_socket = accept( server_socket, 0, 0)) < 0 ){
-            spdlog::error("Failed to accept client.");
-            if (errno) perror("");
-            return EXIT_FAILURE;
-        }
+        if( (connection_socket = accept( server_socket, 0, 0)) < 0 )
+            ExitWithMessage("Failed to accept client.");
 
-        // listen to client
-        /*
-        char buffer[MAXLINE];
-        int n = recv( connection_socket, buffer, MAXLINE, 0 );
-        buffer[n] = '\0';
-
-        std::cout << buffer << std::endl;
-        */
-
-        return 0;
+        return EXIT_SUCCESS;
     }
 
-    void Server::ReceiveFile( char* fname ){
+    /**
+     * Receive executable file from client
+     */
+    int Server::ReceiveFile(){
 
-        this->fname = fname;
+        FILE *efd;  // executable file descriptor
 
-        FILE *output;
+        if( !(efd = fopen( efname, "wb+" )) )   // open binary file for writing
+            ExitWithMessage( "Couldn't open executable file." );
 
-        output = fopen( fname, "wb+" );
-
-        if( output == NULL )
-            spdlog::error("Could not open file!");
 
         struct Payload payload;
 
-        int n;
-        n = recv( connection_socket, &payload.size, sizeof( int ), 0 );
+        // receive executable file size
+        if( recv( connection_socket, &payload.size, sizeof( int ), 0 ) < 0 )
+            ExitWithMessage( "Error receiving executable size from client." );
+        spdlog::info( "Executable file size: {}", payload.size );
 
-        std::cout << "File size: " << payload.size << std::endl;
 
+        // receive executable
         payload.buffer = (unsigned char*)calloc( payload.size, sizeof( unsigned char ) );
+        if( recv( connection_socket, payload.buffer, payload.size*sizeof( unsigned char ), 0 ) < 0 )
+            ExitWithMessage( "Error receiving executable from client." );
 
-        n = recv( connection_socket, payload.buffer, payload.size*sizeof( unsigned char ), 0 );
+        // create file
+        fwrite( payload.buffer, sizeof(unsigned char), payload.size, efd );
+        fclose( efd );
 
-        // unsigned char *buffer;
-        // buffer = (unsigned char*)calloc( size, sizeof( unsigned char ) );
-
-        fwrite( payload.buffer, sizeof(unsigned char), payload.size, output );
-
-        fclose( output );
-
-        Executable exec( fname, ofname );
-        int exec_pid = exec.Execute();
-
-        SendOutput( exec_pid );
-    
+        return EXIT_SUCCESS;
     }  
 
-    // void Server::StartSendingOutput(){
-
-    // }
-
-    void Server::SendOutput( int exec_pid ){
+    
+    /**
+     * Send executable output to client
+     */
+    void Server::SendOutput( int epid ){
 
         FILE* output;
 
         if( !( output = fopen( ofname, "rb" ) ) )
-            spdlog::error("Could not open output file!");
+            ExitWithMessage( "Couldn't open output file.", epid );
 
-
-        int status;
+        // parameters related to the amount of data that will be sent
         int block_size, size, last_size = 0;
-        while( !waitpid( exec_pid, &status, WNOHANG ) ){
 
+        // non blocking wait: waitpid( pid, &status, WNOHANG )
+        // return:
+        //  0   - process hasn't died
+        //  pid - process has died
+        int status;
+        while( !waitpid( epid, &status, WNOHANG ) ){    // while the chiold process is running
+
+            // current output size
             fseek( output, 0, SEEK_END );
-            size = ftell( output );
+            size = ftell( output ); 
 
-            while( size > last_size ){ // if the file has increased, send block
+            while( size > last_size ){ // while there is something new to send
 
                 block_size = size - last_size;
 
-                fseek( output, last_size, SEEK_SET );   // set file pointer to last position
+                fseek( output, last_size, SEEK_SET );   // set file pointer to last sent byte
 
-                send( connection_socket, &block_size, sizeof( int ), 0 );   // send block size
+                // send block size
+                if( send( connection_socket, &block_size, sizeof( int ), 0 ) < 0 )    
+                    ExitWithMessage( "Couldn't send block size to client.", epid );
 
-                // send file block
+                // read new block
                 unsigned char *buffer;
                 buffer = (unsigned char*)calloc( block_size, sizeof( unsigned char ) );
                 fread( buffer, sizeof(unsigned char), block_size*sizeof( unsigned char ), output );
-
-                send( connection_socket, buffer, block_size, 0 );
+                
+                // send block
+                if( send( connection_socket, buffer, block_size, 0 ) < 0 )
+                    ExitWithMessage( "Couldn't send block to client.", epid );
 
                 last_size = size;
                 fseek( output, 0, SEEK_END );
                 size = ftell( output );
-
-                // PROTOCOL: send -1 when EOF is reached
-
             }
 
+
+            // PROTOCOL: send -1 when EOF is reached and the executable has finished too
             int flag = -1;
-            send( connection_socket, &flag, sizeof( int ), 0 );   // send block size
-
+            if( send( connection_socket, &flag, sizeof( int ), 0 ) < 0 )
+                ExitWithMessage( "Couldn't send EOF message to client." );
         }
-
-
     }
 
 }

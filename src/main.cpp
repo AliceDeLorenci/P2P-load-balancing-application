@@ -1,37 +1,21 @@
-#include "../header/server.h"
-#include "../header/client.h"
+#include "../header/load_balancing.h"
 
 #include <iostream>
 #include <string>
 
 #include <unistd.h>
+#include "spdlog/spdlog.h"
 
-int GetExecutableName( char* fname ){
+static void init() {
 
-    std::cout << "Executable name: ";
-
-    // receive executable file name
-    std::string s;
-    std::cin >> s;
-
-    fname = (char*)calloc( s.length() + 1, sizeof(char) );
-    strcpy( fname, s.c_str() );
-
-    // check if file exists
-    if( !fopen( fname, "r" ) ){
-        spdlog::error("File doesn't exist.");
-        if (errno) perror("");
-        return EXIT_FAILURE;
-    }
-
-    // check if file is executable
-    if( access( fname, X_OK ) == -1 ){
-        spdlog::error("File isn't executable.");
-        if (errno) perror("");
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
+    #ifndef _DEBUG
+        spdlog::set_level(spdlog::level::info);
+        spdlog::set_pattern("[%H:%M:%S] [%^%l%$] %v");
+    #else
+        // exhibits a greater number of runtime messages, including messages received throught the UDP and TCP connections
+        spdlog::set_level(spdlog::level::trace);
+        spdlog::set_pattern("[%H:%M:%S] [%^%l%$] [thread %t] %v");
+    #endif
 
 }
 
@@ -39,15 +23,10 @@ int GetExecutableName( char* fname ){
 
 int main ( int argc, char* argv[] ){
 
-    std::cout << "SERVER" << std::endl;
+    init();
 
-    char fname[] = "copia";
-
-    LoadBalancing::Network::Server::Server servidor;
-
-    servidor.CreateTCPConnection();
-    servidor.AcceptClient();
-    servidor.ReceiveFile( fname );
+    LoadBalancing::LoadBalancing app( 1234 );
+    app.RunApplication();
 
     return 0;
 }
@@ -55,20 +34,11 @@ int main ( int argc, char* argv[] ){
 #elif CLIENT
 int main(){
 
+    init();
+
+    LoadBalancing::LoadBalancing app( "127.0.0.1", 1234 );
+    app.RunApplication();
     
-    std::cout << "CLIENTE" << std::endl;
-
-    char* fname;
-    if( GetExecutableName( fname ) == EXIT_FAILURE )
-        return EXIT_FAILURE;
-
-    LoadBalancing::Network::Client::Client client;
-    client.CreateTCPConnection();
-    char fname[] = "teste";
-    client.SendFile( fname );
-    client.ReceiveOutput();
-    //client.SendMessage();
-
     return 0;
 }
 
