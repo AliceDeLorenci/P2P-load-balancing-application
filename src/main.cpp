@@ -42,30 +42,6 @@ int main(){
     return 0;
 }
 
-#elif PEER
-int main(){
-    
-    std::cout << "PEER" << std::endl;
-
-    do{
-        std::string s;
-        std::cin >> s;
-        
-        if(s == "c"){
-            LoadBalancing::Network::Peer::Peer peer;
-            char fname[] = "teste";
-            peer.AskForJob( fname );
-        }
-        else{
-            LoadBalancing::Network::Peer::Peer peer;
-            char fname[] = "copia";
-            peer.ReceiveJobe( fname );
-        }
-
-    }while(s != "c" && s != "s");
-    
-    return 0;
-}
 #endif
 
 
