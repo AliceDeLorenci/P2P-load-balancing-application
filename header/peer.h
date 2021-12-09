@@ -7,16 +7,35 @@
 
 namespace LoadBalancing::Network::Peer{
 
+    constexpr int MIN_PORT = 1000;
+    constexpr int MAX_PORT = 2000;
+
     class Peer{
         private:
-            Server::Server servidor;
-            Client::Client cliente;
+            char* mediator_IP;      // mediator IP address
+            int mediator_port;      // mediator port
+            int mediator_socket;    // socket used for connection with mediator
+
+            int peer_type;          // SENDER / RECEIVER
+
+            std::unique_ptr<Server::Server> server;
+            std::unique_ptr<Client::Client> client;
 
         public:
-            Peer();
+            Peer( char*, int );
             virtual ~Peer();
-            void AskForJob(char * fname);
-            void ReceiveJobe(char * fname);
+
+            int ConnectToMediator();                    // peer connects to mediator
+            int CreateConnection();                     // establishes connection with mediator
+            int SendMessage( int, void*, int, int );    // sends an arbitrary message   
+
+            int GetPeerType();      
+            int SetPeerType( int );
+
+
+            
+            //void AskForJob(char * fname);
+            //void ReceiveJobe(char * fname);
     };
 
 }

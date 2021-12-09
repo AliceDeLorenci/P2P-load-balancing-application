@@ -23,6 +23,17 @@ namespace LoadBalancing::Network{
         unsigned char* buffer;
     };
 
+    // peer identification
+    struct PeerID{
+        int connection_socket;          // connection socket with server
+        struct sockaddr_storage addr;   // peer socket address
+        char ipstr[INET6_ADDRSTRLEN];   // peer IP address
+        int port;                       // peer port (connection with mediator)
+
+        int type;                       // peer type
+        int server_port;                // peer's server port (only when type == RECEIVER)
+    };
+
     // se necessario, pode ser usada para implementar funcoes comuns
     // a clientes e servidores
 }

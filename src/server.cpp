@@ -18,7 +18,9 @@ namespace LoadBalancing::Network::Server{
      */
     Server::~Server(){}
 
-    // Open TCP connection
+    /**
+     * Open TCP connection
+     */
     int Server::CreateTCPConnection(){
 
         // allocate a socket for the server

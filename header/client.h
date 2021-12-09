@@ -18,7 +18,7 @@ namespace LoadBalancing::Network::Client{
             virtual ~Client();
 
             int CreateTCPConnection();      // establish connection with server
-            void SendFile( char* fname );   // sends executable to server
+            void SendFile( char* );         // sends executable to server
             void ReceiveOutput();           // receives executable output from server
             int CheckReceiveOutput();       // check whether there is new output
     };

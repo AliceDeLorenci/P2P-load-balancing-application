@@ -3,6 +3,8 @@
 
 #include "../header/server.h"
 #include "../header/client.h"
+#include "../header/peer.h"
+#include "../header/mediator.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,11 +21,12 @@
 
 namespace LoadBalancing{
 
-#ifdef SERVER
-    constexpr const char* efname = "exec_copy";   // executable file name (received from client)
-    constexpr const char* ofname = "output.txt";    // file to which the executable output is saved 
-#endif 
+// #ifdef SERVER || PEER
+    constexpr const char* EFNAME = "exec_copy";     // name with which the received executable file will be saved 
+    constexpr const char* OFNAME = "output.txt";    // file to which the executable output is saved 
+// #endif 
 
+    enum PeerType { RECEIVER, SENDER };
     void ExitWithMessage( const char* );          // print error message and errno description
     void ExitWithMessage( const char*, pid_t );   // same as above but also kills child process
 
@@ -71,7 +74,24 @@ namespace LoadBalancing{
 
             char* efname;                       // executable file name (sent to client)
 
+    #elif PEER
 
+        public:
+            LoadBalancing( char*, int );
+            int GetPeerType();                  // TODO
+            
+        private:
+            int peer_type;
+            Network::Peer::Peer peer;
+
+    #elif MEDIATOR
+
+        public:
+            LoadBalancing( int );   
+
+        private:
+            Network::Mediator::Mediator mediator;
+            
     #endif 
 
     };

@@ -25,8 +25,8 @@ namespace LoadBalancing{
 
 #ifdef SERVER
 
-    LoadBalancing::LoadBalancing( int port ) : server( port, const_cast<char*>(efname), const_cast<char*>(ofname) ),
-                                                executable( const_cast<char*>(efname), const_cast<char*>(ofname) ){ }
+    LoadBalancing::LoadBalancing( int port ) : server( port, const_cast<char*>(EFNAME), const_cast<char*>(OFNAME) ),
+                                                executable( const_cast<char*>(EFNAME), const_cast<char*>(OFNAME) ){ }
 
     /**
      * Run server side Load Balancing application
@@ -85,6 +85,69 @@ namespace LoadBalancing{
         // check if file is executable
         if( access( efname, X_OK ) == -1 )
             ExitWithMessage("File isn't executable.");
+
+        return EXIT_SUCCESS;
+    }
+
+#elif PEER
+
+    LoadBalancing::LoadBalancing( char* mediator_IP, int mediator_port ) : peer( mediator_IP, mediator_port ){ }
+
+    /**
+     * Run Load Balancing peer
+     */
+    int LoadBalancing::RunApplication(){
+
+        spdlog::info( "PEER" );
+
+        GetPeerType();                  // ask user whether it will send or receive a job
+        peer.SetPeerType( peer_type );
+
+        peer.ConnectToMediator();       // peer connects to mediator 
+
+
+        /*
+        GetExecutableName();        // ask user for executable name
+
+        client.CreateTCPConnection();   // establish connection with server
+        client.SendFile( efname );      // send executable file name
+        client.ReceiveOutput();         // receive executable output
+        */
+        return EXIT_SUCCESS;
+    }
+
+    /**
+     * Ask user for peer type
+     */
+    int LoadBalancing::GetPeerType(){
+
+        std::cout << "Choose an option:\n\t1. Receive job\n\t2. Send job" << std::endl;
+
+        std::string s;
+        std::cin >> s;
+
+        if( s.compare("1") == 0 ){
+            peer_type = RECEIVER;
+        }else if( s.compare("2") == 0 ){
+            peer_type = SENDER;
+        }else{
+            ExitWithMessage( "Invalid peer type." );
+        }
+
+        return EXIT_SUCCESS;
+    }
+
+#elif MEDIATOR
+
+    LoadBalancing::LoadBalancing( int mediator_port ) : mediator( mediator_port ){ }
+
+    int LoadBalancing::RunApplication(){
+
+        mediator.CreateTCPConnection();
+
+        while( true ){
+            mediator.AcceptClient();
+        }
 
         return EXIT_SUCCESS;
     }

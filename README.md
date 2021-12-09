@@ -6,6 +6,29 @@
 - ler e enviar o executável por blocos para evitar estouro de heap
 - ```htonl()```, ```ntohl()```
 - once the child process is up, it must be killed before the parent quits
+- receiver can give up
+
+### Mediator
+
+Accept sender:
+- if exits receiver:
+    - send receiver socket
+    - pop receiver
+- if not exists receiver:
+    - push sender
+
+Accept receiver:
+- if exists sender:
+    - send receiver socket
+    - pop sender
+- if not exists sender:
+    - push receiver
+
+Functionalities not includede in the prototype:
+- receiver informs for how long it expects to be up
+- sender informs how long it beleives it will take
+- mediator matches sender and receiver
+
 
 ## P2P
 

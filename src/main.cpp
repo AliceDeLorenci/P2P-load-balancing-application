@@ -44,7 +44,13 @@ int main(){
 
 #elif PEER
 int main(){
-    
+
+    init();
+
+    LoadBalancing::LoadBalancing app( "127.0.0.1", 1234 );
+    app.RunApplication();
+
+    /*
     std::cout << "PEER" << std::endl;
 
     do{
@@ -63,9 +69,23 @@ int main(){
         }
 
     }while(s != "c" && s != "s");
+    */
     
     return 0;
 }
+
+#elif MEDIATOR
+
+int main(){
+
+    init();
+
+    LoadBalancing::LoadBalancing app( 1234 );
+    app.RunApplication();   
+
+    return 0;
+}
+
 #endif
 
 
