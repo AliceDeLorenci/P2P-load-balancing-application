@@ -18,15 +18,19 @@ namespace LoadBalancing::Network::Peer{
 
             int peer_type;          // SENDER / RECEIVER
 
-            std::unique_ptr<Server::Server> server;
-            std::unique_ptr<Client::Client> client;
+            std::unique_ptr<Server::Server> server; // instantiated when the peer is a RECEIVER
+            std::unique_ptr<Client::Client> client; // instantiated when the peer is a SENDER
 
         public:
             Peer( char*, int );
             virtual ~Peer();
 
             int ConnectToMediator();                    // peer connects to mediator
-            int CreateConnection();                     // establishes connection with mediator
+            int CreateConnection();                     // establishes TCP connection with mediator
+            
+            int GetLoad( );                             // a RECEIVER type peer gets a load
+            int SendLoad( char* );                      // a SENDER type peer sends a load
+
             int SendMessage( int, void*, int, int );    // sends an arbitrary message   
 
             int GetPeerType();      

@@ -105,6 +105,19 @@ namespace LoadBalancing{
 
         peer.ConnectToMediator();       // peer connects to mediator 
 
+        if( peer_type == RECEIVER ){
+
+            peer.GetLoad();
+
+        }else if( peer_type == SENDER ){
+
+            GetExecutableName();        // ask user for executable name
+            peer.SendLoad( efname );    // process load sending
+
+        }else{
+            return EXIT_FAILURE;
+        }
+
 
         /*
         GetExecutableName();        // ask user for executable name
@@ -137,6 +150,31 @@ namespace LoadBalancing{
         return EXIT_SUCCESS;
     }
 
+    /**
+     * Ask user for executable name
+     */
+    int LoadBalancing::GetExecutableName(){
+
+        std::cout << "Executable name: ";
+
+        // receive executable file name
+        std::string s;
+        std::cin >> s;
+
+        efname = (char*)calloc( s.length() + 1, sizeof(char) );
+        strcpy( efname, s.c_str() );
+
+        // check if file exists
+        if( !fopen( efname, "r" ) )
+            ExitWithMessage("File doesn't exist.");
+
+        // check if file is executable
+        if( access( efname, X_OK ) == -1 )
+            ExitWithMessage("File isn't executable.");
+
+        return EXIT_SUCCESS;
+    }
+
 #elif MEDIATOR
 
     LoadBalancing::LoadBalancing( int mediator_port ) : mediator( mediator_port ){ }
@@ -147,6 +185,7 @@ namespace LoadBalancing{
 
         while( true ){
             mediator.AcceptClient();
+            mediator.DistributeLoads();
         }
 
         return EXIT_SUCCESS;

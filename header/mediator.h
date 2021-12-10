@@ -20,6 +20,7 @@ namespace LoadBalancing::Network::Mediator{
 
             int CreateTCPConnection();          // Open TCP connection     
             int AcceptClient();                 // Connect to client 
+            int DistributeLoads();              // Pairs senders and receivers
             int StartAcceptingClients();        
 
     };

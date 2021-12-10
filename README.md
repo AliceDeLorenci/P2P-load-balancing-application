@@ -7,6 +7,8 @@
 - ```htonl()```, ```ntohl()```
 - once the child process is up, it must be killed before the parent quits
 - receiver can give up
+- maximum queue size, to many receivers or senders: drop
+- mediator-receiver connection could be maintained and receiver could listen to it with a thread, if the mediator decides to drop the receiver
 
 ### Mediator
 

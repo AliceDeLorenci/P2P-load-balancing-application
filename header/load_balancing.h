@@ -27,8 +27,9 @@ namespace LoadBalancing{
 // #endif 
 
     enum PeerType { RECEIVER, SENDER };
+
     void ExitWithMessage( const char* );          // print error message and errno description
-    void ExitWithMessage( const char*, pid_t );   // same as above but also kills child process
+    void ExitWithMessage( const char*, pid_t );   // same as above but also the process identified by the given pid
 
     // Manages the executable execution
     class Executable{
@@ -78,11 +79,15 @@ namespace LoadBalancing{
 
         public:
             LoadBalancing( char*, int );
-            int GetPeerType();                  // TODO
+            int GetPeerType();                  // ask user for peer type (receiver or sender)
+            int GetExecutableName();           // ask user for executable name
             
         private:
             int peer_type;
             Network::Peer::Peer peer;
+
+            char* efname;                               // executable file name (used only for SENDER peer)
+            std::unique_ptr<Executable> executable;     // manages executable execution
 
     #elif MEDIATOR
 

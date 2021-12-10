@@ -59,11 +59,21 @@ namespace LoadBalancing::Network::Peer{
             // inform peer's server port to mediator
             if( send( mediator_socket, &server_port, sizeof( int ), 0 ) < 0 )
                 ExitWithMessage( "Coundn't send peer's server port to mediator." );
+            
+            // accept client ...
 
         }else if( peer_type == SENDER ){
             
-            // TODO
+            // wait for a RECEIVER's address
+            struct ServerID receiver;
+            if( recv( mediator_socket, &receiver, sizeof( struct ServerID ), 0 ) < 0 )
+                ExitWithMessage( "Error receiving receiver information." );
 
+            spdlog::info( "Receiver peer IP and port: {}, {}", receiver.ipstr, receiver.port );
+
+            client = std::make_unique<Client::Client> ( receiver.ipstr, receiver.port );
+
+            // create connection ...
         }
 
         return EXIT_SUCCESS;
@@ -76,7 +86,7 @@ namespace LoadBalancing::Network::Peer{
 
         // create client socket
         if ( (mediator_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-            ExitWithMessage("Failed to create a client socket.");
+            ExitWithMessage("Failed to create a peer socket.");
 
         // server socket address
         struct sockaddr_in addr;
@@ -87,7 +97,42 @@ namespace LoadBalancing::Network::Peer{
 
         // connect to server
         if( connect( mediator_socket, (struct sockaddr*)&addr, sizeof(addr) ) < 0 )
-            ExitWithMessage("Failed to connect to server.");
+            ExitWithMessage("Failed to connect to mediator.");
+
+        return EXIT_SUCCESS;
+    }
+
+    /**
+     * A RECEIVER type peer gets a load.
+     */
+    int Peer::GetLoad( ){
+
+        if( peer_type != RECEIVER ){
+            return EXIT_FAILURE;
+        }
+
+        server->AcceptClient();          // establish connection with client
+        server->ReceiveFile();           // receive executable
+
+        Executable executable( const_cast<char*>(EFNAME), const_cast<char*>(OFNAME) );
+        int epid = executable.Execute();// run executable
+        server->SendOutput( epid );      // send output to client (run on a thread??)
+
+        return EXIT_SUCCESS;
+    }
+
+    /**
+     * A SENDER type peer sends a load.
+     */
+    int Peer::SendLoad( char* efname ){
+
+        if( peer_type != SENDER ){
+            return EXIT_FAILURE;
+        }
+
+        client->CreateTCPConnection();   // establish connection with RECEIVER
+        client->SendFile( efname );      // send executable file name
+        client->ReceiveOutput();         // receive executable output
 
         return EXIT_SUCCESS;
     }

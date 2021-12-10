@@ -19,7 +19,7 @@ static void init() {
 
 }
 
-#ifdef SERVER
+#if SERVER || MEDIATOR
 
 int main ( int argc, char* argv[] ){
 
@@ -31,7 +31,8 @@ int main ( int argc, char* argv[] ){
     return 0;
 }
 
-#elif CLIENT
+#elif CLIENT || PEER
+
 int main(){
 
     init();
@@ -39,50 +40,6 @@ int main(){
     LoadBalancing::LoadBalancing app( "127.0.0.1", 1234 );
     app.RunApplication();
     
-    return 0;
-}
-
-#elif PEER
-int main(){
-
-    init();
-
-    LoadBalancing::LoadBalancing app( "127.0.0.1", 1234 );
-    app.RunApplication();
-
-    /*
-    std::cout << "PEER" << std::endl;
-
-    do{
-        std::string s;
-        std::cin >> s;
-        
-        if(s == "c"){
-            LoadBalancing::Network::Peer::Peer peer;
-            char fname[] = "teste";
-            peer.AskForJob( fname );
-        }
-        else{
-            LoadBalancing::Network::Peer::Peer peer;
-            char fname[] = "copia";
-            peer.ReceiveJobe( fname );
-        }
-
-    }while(s != "c" && s != "s");
-    */
-    
-    return 0;
-}
-
-#elif MEDIATOR
-
-int main(){
-
-    init();
-
-    LoadBalancing::LoadBalancing app( 1234 );
-    app.RunApplication();   
-
     return 0;
 }
 

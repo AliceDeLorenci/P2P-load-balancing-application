@@ -69,13 +69,13 @@ namespace LoadBalancing::Network::Mediator{
 
             struct sockaddr_in *s = (struct sockaddr_in *)&peer.addr;
             peer.port = ntohs( s->sin_port );
-            inet_ntop(AF_INET, &s->sin_addr, peer.ipstr, sizeof( peer.ipstr ) );
+            inet_ntop( AF_INET, &s->sin_addr, peer.ipstr, sizeof( peer.ipstr ) );
 
         } else { // AF_INET6
 
             struct sockaddr_in6 *s = (struct sockaddr_in6 *)&peer.addr;
-            peer.port = ntohs(s->sin6_port);
-            inet_ntop(AF_INET6, &s->sin6_addr, peer.ipstr, sizeof( peer.ipstr ) );
+            peer.port = ntohs( s->sin6_port );
+            inet_ntop( AF_INET6, &s->sin6_addr, peer.ipstr, sizeof( peer.ipstr ) );
 
         }
 
@@ -97,14 +97,46 @@ namespace LoadBalancing::Network::Mediator{
 
             receivers.push( peer );
 
+            // the mediator won't need to communicate further with the receiver
+            close( peer.connection_socket );
+
         }else if( peer.type == SENDER ){
 
-            // TOPO
+            senders.push( peer );
 
         }else{
             return EXIT_FAILURE;
         }
 
+        return EXIT_SUCCESS;
+    }
+
+    /**
+     * Pair senders and receivers
+     */
+    int Mediator::DistributeLoads(){
+
+        if( (!receivers.empty()) && (!senders.empty()) ){
+
+            struct PeerID receiver, sender;
+
+            receiver = receivers.front();
+            sender = senders.front();
+
+            struct ServerID receiver_addr;
+            receiver_addr.port = receiver.server_port;
+            strcpy( receiver_addr.ipstr, receiver.ipstr );
+
+            if( send( sender.connection_socket, &receiver_addr, sizeof( struct ServerID ), 0 ) < 0 )
+                ExitWithMessage( "Coundn't pair sender and receiver." );
+
+            // close connection with sender peer
+            close( sender.connection_socket );
+
+            receivers.pop();
+            senders.pop();
+
+        }
         return EXIT_SUCCESS;
     }
 

@@ -34,6 +34,12 @@ namespace LoadBalancing::Network{
         int server_port;                // peer's server port (only when type == RECEIVER)
     };
 
+    // server identification 
+    struct ServerID{
+        char ipstr[INET6_ADDRSTRLEN];   // server IP address
+        int port;                       // server port
+    };
+
     // se necessario, pode ser usada para implementar funcoes comuns
     // a clientes e servidores
 }
