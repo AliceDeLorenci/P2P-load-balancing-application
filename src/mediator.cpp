@@ -1,7 +1,6 @@
 #include "../header/mediator.h" 
-#include "../header/load_balancing.h" 
-#include "../header/network.h"
-#include <iostream>
+#include "../header/load_balancing.h"
+
 
 namespace LoadBalancing::Network::Mediator{
 
@@ -41,18 +40,18 @@ namespace LoadBalancing::Network::Mediator{
         if ( bind( mediator_socket, (struct sockaddr*)&addr, sizeof(addr)) < 0 )
             ExitWithMessage( "Failed to bind server socket." );
 
-        // start listening to clients
+        // start listening to peers
         if ( listen( mediator_socket, 1 ) == -1) 
-            ExitWithMessage( "Failed to listen for clients." );
+            ExitWithMessage( "Failed to listen for peers." );
 
         return EXIT_SUCCESS;
 
     }
 
     /**
-     * Accept client
+     * Accept peer
      */
-    int Mediator::AcceptClient(){
+    int Mediator::AcceptPeer(){
 
         spdlog::info( "Waiting for peer..." );
 
@@ -60,9 +59,9 @@ namespace LoadBalancing::Network::Mediator{
 
         socklen_t len = sizeof( peer.addr );
 
-        // accept client
+        // accept peer
         if( ( peer.connection_socket = accept( mediator_socket, (struct sockaddr*)&peer.addr, &len ) ) < 0 )
-            ExitWithMessage("Failed to accept client.");
+            ExitWithMessage("Failed to accept peer.");
 
         // deal with both IPv4 and IPv6:
         if (peer.addr.ss_family == AF_INET) {
@@ -79,13 +78,13 @@ namespace LoadBalancing::Network::Mediator{
 
         }
 
-        spdlog::info( "Peer IP address: {}", peer.ipstr );
+        //spdlog::info( "Peer IP address: {}", peer.ipstr );
 
         // receive peer type
         if( recv( peer.connection_socket, &peer.type, sizeof( int ), 0 ) < 0 )
             ExitWithMessage( "Error receiving peer type." );
 
-        spdlog::info( "Peer type: {}", peer.type == RECEIVER ? "receiver" : "sender" );
+        //spdlog::info( "Peer type: {}", peer.type == RECEIVER ? "receiver" : "sender" );
 
         if( peer.type == RECEIVER ){
 
@@ -93,7 +92,8 @@ namespace LoadBalancing::Network::Mediator{
             if( recv( peer.connection_socket, &peer.server_port, sizeof( int ), 0 ) < 0 )
                 ExitWithMessage( "Error receiving peer server port." );
             
-            spdlog::info( "Peer server port: {}", peer.server_port );
+            //spdlog::info( "Peer server port: {}", peer.server_port );
+            spdlog::info( "New RECEIVER [IP:{}, port:{}]", peer.ipstr, peer.server_port );
 
             receivers.push( peer );
 
@@ -101,6 +101,8 @@ namespace LoadBalancing::Network::Mediator{
             close( peer.connection_socket );
 
         }else if( peer.type == SENDER ){
+
+            spdlog::info( "New SENDER: [IP:{}]", peer.ipstr );
 
             senders.push( peer );
 
@@ -123,11 +125,11 @@ namespace LoadBalancing::Network::Mediator{
             receiver = receivers.front();
             sender = senders.front();
 
-            struct ServerID receiver_addr;
+            struct ReceiverID receiver_addr;
             receiver_addr.port = receiver.server_port;
             strcpy( receiver_addr.ipstr, receiver.ipstr );
 
-            if( send( sender.connection_socket, &receiver_addr, sizeof( struct ServerID ), 0 ) < 0 )
+            if( send( sender.connection_socket, &receiver_addr, sizeof( struct ReceiverID ), 0 ) < 0 )
                 ExitWithMessage( "Coundn't pair sender and receiver." );
 
             // close connection with sender peer
@@ -136,15 +138,8 @@ namespace LoadBalancing::Network::Mediator{
             receivers.pop();
             senders.pop();
 
+            spdlog::info( "Matched sender and receiver." );
         }
-        return EXIT_SUCCESS;
-    }
-
-    /**
-     * Accept client
-     */
-    int Mediator::StartAcceptingClients(){
-        
         return EXIT_SUCCESS;
     }
 

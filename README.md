@@ -2,7 +2,9 @@
 
 ## TO DO
 
-- substituir ```system()``` por ```fork()```
+- "Hello World" each 0.5s
+- Append socket number to executable copy name and output file name
+
 - ler e enviar o executável por blocos para evitar estouro de heap
 - ```htonl()```, ```ntohl()```
 - once the child process is up, it must be killed before the parent quits
@@ -42,9 +44,9 @@ Functionalities not includede in the prototype:
 
 Compilar com:
 
-    make DEFS=-DSERVER EXEC=server ODIR=build_server
+    make DEFS=-DMEDIATOR EXEC=mediator ODIR=build_mediator
 
-    make DEFS=-DCLIENT EXEC=client ODIR=build_client
+    make DEFS=-DPEER EXEC=peer ODIR=build_peer
 
 Executar:
 

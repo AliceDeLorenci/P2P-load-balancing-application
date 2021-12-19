@@ -2,13 +2,14 @@
 #define PEER_H
 
 #include "../header/network.h"
-#include "../header/server.h"
-#include "../header/client.h"
+#include "../header/receiver.h"
+#include "../header/sender.h"
 
 namespace LoadBalancing::Network::Peer{
 
-    constexpr int MIN_PORT = 1000;
-    constexpr int MAX_PORT = 2000;
+    // port range from which the receiver peer port will be randomly chosen
+    constexpr int MIN_PORT = 1024;
+    constexpr int MAX_PORT = 65535;
 
     class Peer{
         private:
@@ -18,8 +19,8 @@ namespace LoadBalancing::Network::Peer{
 
             int peer_type;          // SENDER / RECEIVER
 
-            std::unique_ptr<Server::Server> server; // instantiated when the peer is a RECEIVER
-            std::unique_ptr<Client::Client> client; // instantiated when the peer is a SENDER
+            std::unique_ptr<Receiver::Receiver> receiver; // instantiated when the peer is a RECEIVER
+            std::unique_ptr<Sender::Sender> sender;       // instantiated when the peer is a SENDER
 
         public:
             Peer( char*, int );

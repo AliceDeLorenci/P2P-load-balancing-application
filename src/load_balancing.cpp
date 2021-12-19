@@ -23,73 +23,7 @@ namespace LoadBalancing{
 
     LoadBalancing::~LoadBalancing() {}
 
-#ifdef SERVER
-
-    LoadBalancing::LoadBalancing( int port ) : server( port, const_cast<char*>(EFNAME), const_cast<char*>(OFNAME) ),
-                                                executable( const_cast<char*>(EFNAME), const_cast<char*>(OFNAME) ){ }
-
-    /**
-     * Run server side Load Balancing application
-     */
-    int LoadBalancing::RunApplication(){
-
-        spdlog::info( "SERVER" );
-
-        server.CreateTCPConnection();   // open TCP socket
-        server.AcceptClient();          // establish connection with client
-        server.ReceiveFile();           // receive executable
-        int epid = executable.Execute();// run executable
-        server.SendOutput( epid );      // send output to client (run on a thread??)
-
-        return EXIT_SUCCESS;
-    }
-
-#elif CLIENT
-
-    LoadBalancing::LoadBalancing( char* IP, int port ) : client( IP, port ){ }
-
-    /**
-     * Run client side Load Balancing application
-     */
-    int LoadBalancing::RunApplication(){
-
-        spdlog::info( "CLIENT" );
-
-        GetExecutableName();        // ask user for executable name
-
-        client.CreateTCPConnection();   // establish connection with server
-        client.SendFile( efname );      // send executable file name
-        client.ReceiveOutput();         // receive executable output
-        
-        return EXIT_SUCCESS;
-    }
-
-    /**
-     * Ask user for executable name
-     */
-    int LoadBalancing::GetExecutableName(){
-
-        std::cout << "Executable name: ";
-
-        // receive executable file name
-        std::string s;
-        std::cin >> s;
-
-        efname = (char*)calloc( s.length() + 1, sizeof(char) );
-        strcpy( efname, s.c_str() );
-
-        // check if file exists
-        if( !fopen( efname, "r" ) )
-            ExitWithMessage("File doesn't exist.");
-
-        // check if file is executable
-        if( access( efname, X_OK ) == -1 )
-            ExitWithMessage("File isn't executable.");
-
-        return EXIT_SUCCESS;
-    }
-
-#elif PEER
+#if PEER
 
     LoadBalancing::LoadBalancing( char* mediator_IP, int mediator_port ) : peer( mediator_IP, mediator_port ){ }
 
@@ -107,25 +41,16 @@ namespace LoadBalancing{
 
         if( peer_type == RECEIVER ){
 
-            peer.GetLoad();
+            peer.GetLoad();             // wait for load
 
         }else if( peer_type == SENDER ){
 
-            GetExecutableName();        // ask user for executable name
-            peer.SendLoad( efname );    // process load sending
+            peer.SendLoad( GetExecutableName() );  // send load (ask user for executable file name)
 
         }else{
             return EXIT_FAILURE;
         }
 
-
-        /*
-        GetExecutableName();        // ask user for executable name
-
-        client.CreateTCPConnection();   // establish connection with server
-        client.SendFile( efname );      // send executable file name
-        client.ReceiveOutput();         // receive executable output
-        */
         return EXIT_SUCCESS;
     }
 
@@ -153,7 +78,7 @@ namespace LoadBalancing{
     /**
      * Ask user for executable name
      */
-    int LoadBalancing::GetExecutableName(){
+    char* LoadBalancing::GetExecutableName(){
 
         std::cout << "Executable name: ";
 
@@ -161,18 +86,15 @@ namespace LoadBalancing{
         std::string s;
         std::cin >> s;
 
-        efname = (char*)calloc( s.length() + 1, sizeof(char) );
+        char* efname = (char*)calloc( s.length() + 1, sizeof(char) );
         strcpy( efname, s.c_str() );
 
-        // check if file exists
-        if( !fopen( efname, "r" ) )
-            ExitWithMessage("File doesn't exist.");
 
-        // check if file is executable
+        // check if file exists and is executable
         if( access( efname, X_OK ) == -1 )
             ExitWithMessage("File isn't executable.");
 
-        return EXIT_SUCCESS;
+        return efname;
     }
 
 #elif MEDIATOR
@@ -184,7 +106,7 @@ namespace LoadBalancing{
         mediator.CreateTCPConnection();
 
         while( true ){
-            mediator.AcceptClient();
+            mediator.AcceptPeer();
             mediator.DistributeLoads();
         }
 
@@ -203,13 +125,17 @@ namespace LoadBalancing{
     Executable::~Executable() {};
 
     /**
-     * Executes the client program
+     * Runs an executable
      */
     int Executable::Execute(){
 
         char sys_cmd[128];
         sprintf( sys_cmd, "chmod +x %s", efname );   // make file executable
         system( sys_cmd );
+
+        // clear output file prior to execution
+        FILE* file = fopen( ofname, "w+" );
+        fclose( file );
 
         pid_t pid = fork(); // fork new process
 

@@ -1,7 +1,8 @@
 #ifndef MEDIATOR_H
 #define MEDIATOR_H
 
-#include "../header/server.h"
+#include "network.h"
+
 #include <queue>
 
 namespace LoadBalancing::Network::Mediator{
@@ -19,9 +20,8 @@ namespace LoadBalancing::Network::Mediator{
             virtual ~Mediator();
 
             int CreateTCPConnection();          // Open TCP connection     
-            int AcceptClient();                 // Connect to client 
-            int DistributeLoads();              // Pairs senders and receivers
-            int StartAcceptingClients();        
+            int AcceptPeer();                   // Connect to peer 
+            int DistributeLoads();              // Pairs senders and receivers   
 
     };
 

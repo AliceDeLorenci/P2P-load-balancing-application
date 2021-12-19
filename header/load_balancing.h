@@ -1,8 +1,8 @@
 #ifndef LOAD_BALANCING_H
 #define LOAD_BALANCING_H
 
-#include "../header/server.h"
-#include "../header/client.h"
+#include "../header/receiver.h"
+#include "../header/sender.h"
 #include "../header/peer.h"
 #include "../header/mediator.h"
 
@@ -21,15 +21,14 @@
 
 namespace LoadBalancing{
 
-// #ifdef SERVER || PEER
     constexpr const char* EFNAME = "exec_copy";     // name with which the received executable file will be saved 
     constexpr const char* OFNAME = "output.txt";    // file to which the executable output is saved 
-// #endif 
 
-    enum PeerType { RECEIVER, SENDER };
+
+    enum PeerType { RECEIVER, SENDER };           // types of peers
 
     void ExitWithMessage( const char* );          // print error message and errno description
-    void ExitWithMessage( const char*, pid_t );   // same as above but also the process identified by the given pid
+    void ExitWithMessage( const char*, pid_t );   // same as above but also kill the process identified by the given pid
 
     // Manages the executable execution
     class Executable{
@@ -42,7 +41,7 @@ namespace LoadBalancing{
             Executable( char*, char* );
             virtual ~Executable();
 
-            int Execute();      // executes the executable
+            int Execute();      // executes 
     };
 
     // Controller class
@@ -52,42 +51,18 @@ namespace LoadBalancing{
             virtual ~LoadBalancing();
             int RunApplication();
 
-    #ifdef SERVER
+    #if PEER
 
         public:
-            LoadBalancing( int );
-
-        private:
-            Network::Server::Server server;     // manages server side connection
-            Executable executable;              // manages executable execution
-
-            //const char* efname = "exec_copy";   // executable file name (received from client)
-            //const char* ofname = "output.txt";  // file where the executable output is saved 
-
-    #elif CLIENT
-
-        public:
-            LoadBalancing( char*, int );
-            int GetExecutableName();           // ask user for executable name
-
-        private:
-            Network::Client::Client client;
-
-            char* efname;                       // executable file name (sent to client)
-
-    #elif PEER
-
-        public:
-            LoadBalancing( char*, int );
-            int GetPeerType();                  // ask user for peer type (receiver or sender)
-            int GetExecutableName();           // ask user for executable name
+            LoadBalancing( char*, int );        
+            int GetPeerType();                 // ask user for peer type (receiver or sender)
+            char* GetExecutableName();         // ask user for executable name
             
         private:
             int peer_type;
             Network::Peer::Peer peer;
 
-            char* efname;                               // executable file name (used only for SENDER peer)
-            std::unique_ptr<Executable> executable;     // manages executable execution
+            std::unique_ptr<Executable> executable;     // manages executable execution (used only by RECEIVER peer)
 
     #elif MEDIATOR
 

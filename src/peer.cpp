@@ -38,9 +38,8 @@ namespace LoadBalancing::Network::Peer{
 
         // establish TCP connection with mediator
         CreateConnection();     
-
-        // inform peer type to mediator
-        if( send( mediator_socket, &peer_type, sizeof( int ), 0 ) < 0 )
+                        
+        if( send( mediator_socket, &peer_type, sizeof( int ), 0 ) < 0 )   // inform peer type to mediator
             ExitWithMessage( "Coundn't send peer type to mediator." );
 
         if( peer_type == RECEIVER ){
@@ -50,30 +49,30 @@ namespace LoadBalancing::Network::Peer{
             std::default_random_engine eng(rd());
             std::uniform_int_distribution<int> distr( MIN_PORT, MAX_PORT );
 
-            int server_port = distr(eng);
-            server = std::make_unique<Server::Server> ( server_port, const_cast<char*>(EFNAME), const_cast<char*>(OFNAME) );    // change this (EFNAME, OFNAME)
-            server->CreateTCPConnection();
+            // instantiate RECEIVER
+            int receiver_port = distr(eng);
+            receiver = std::make_unique<Receiver::Receiver> ( receiver_port, const_cast<char*>(EFNAME), const_cast<char*>(OFNAME) );  
+            receiver->CreateTCPConnection();
 
-            spdlog::info( "Peer server port: {}", server_port );
+            spdlog::info( "Peer receiver port: {}", receiver_port );
 
-            // inform peer's server port to mediator
-            if( send( mediator_socket, &server_port, sizeof( int ), 0 ) < 0 )
-                ExitWithMessage( "Coundn't send peer's server port to mediator." );
-            
-            // accept client ...
+            // inform peer's receiver port to mediator
+            if( send( mediator_socket, &receiver_port, sizeof( int ), 0 ) < 0 )
+                ExitWithMessage( "Coundn't send peer's port to mediator." );
 
         }else if( peer_type == SENDER ){
             
+            spdlog::info( "Waiting for receiver..." );
+
             // wait for a RECEIVER's address
-            struct ServerID receiver;
-            if( recv( mediator_socket, &receiver, sizeof( struct ServerID ), 0 ) < 0 )
+            struct ReceiverID receiver;
+            if( recv( mediator_socket, &receiver, sizeof( struct ReceiverID ), 0 ) < 0 )
                 ExitWithMessage( "Error receiving receiver information." );
 
-            spdlog::info( "Receiver peer IP and port: {}, {}", receiver.ipstr, receiver.port );
+            spdlog::info( "RECEIVER: [IP:{}, port:{}]", receiver.ipstr, receiver.port );
 
-            client = std::make_unique<Client::Client> ( receiver.ipstr, receiver.port );
-
-            // create connection ...
+            // instantiate SENDER
+            sender = std::make_unique<Sender::Sender> ( receiver.ipstr, receiver.port );
         }
 
         return EXIT_SUCCESS;
@@ -84,18 +83,18 @@ namespace LoadBalancing::Network::Peer{
      */
     int Peer::CreateConnection(){
 
-        // create client socket
+        // create sender socket
         if ( (mediator_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
             ExitWithMessage("Failed to create a peer socket.");
 
-        // server socket address
+        // receiver socket address
         struct sockaddr_in addr;
         addr.sin_family      = AF_INET;
         addr.sin_port        = htons( mediator_port );
         addr.sin_addr.s_addr = inet_addr( mediator_IP );
         memset( &addr.sin_zero,0,sizeof(addr.sin_zero) );
 
-        // connect to server
+        // connect to receiver
         if( connect( mediator_socket, (struct sockaddr*)&addr, sizeof(addr) ) < 0 )
             ExitWithMessage("Failed to connect to mediator.");
 
@@ -103,7 +102,7 @@ namespace LoadBalancing::Network::Peer{
     }
 
     /**
-     * A RECEIVER type peer gets a load.
+     * A RECEIVER peer gets a load.
      */
     int Peer::GetLoad( ){
 
@@ -111,18 +110,20 @@ namespace LoadBalancing::Network::Peer{
             return EXIT_FAILURE;
         }
 
-        server->AcceptClient();          // establish connection with client
-        server->ReceiveFile();           // receive executable
+        receiver->AcceptSender();         // establish connection with sender
+        receiver->ReceiveFile();          // receive executable
 
         Executable executable( const_cast<char*>(EFNAME), const_cast<char*>(OFNAME) );
-        int epid = executable.Execute();// run executable
-        server->SendOutput( epid );      // send output to client (run on a thread??)
+        int epid = executable.Execute();    // run executable
+        spdlog::info( "Executing..." );
+
+        receiver->SendOutput( epid );      // send output to sender
 
         return EXIT_SUCCESS;
     }
 
     /**
-     * A SENDER type peer sends a load.
+     * A SENDER peer sends a load.
      */
     int Peer::SendLoad( char* efname ){
 
@@ -130,9 +131,9 @@ namespace LoadBalancing::Network::Peer{
             return EXIT_FAILURE;
         }
 
-        client->CreateTCPConnection();   // establish connection with RECEIVER
-        client->SendFile( efname );      // send executable file name
-        client->ReceiveOutput();         // receive executable output
+        sender->CreateTCPConnection();   // establish connection with RECEIVER
+        sender->SendFile( efname );      // send executable file name
+        sender->ReceiveOutput();         // receive executable output
 
         return EXIT_SUCCESS;
     }
@@ -144,23 +145,5 @@ namespace LoadBalancing::Network::Peer{
         return EXIT_SUCCESS;
 
     }
-
-    // void Peer::AskForJob(char * fname){
-
-    //     std::cout << "Asking for a job" << std::endl;
-    //     LoadBalancing::Network::Client::Client client;
-    //     client.CreateTCPConnection();
-    //     client.SendFile( fname );
-    //     client.ReceiveOutput();
-
-    // };
-
-    // void Peer::ReceiveJobe(char * fname){
-
-    //     servidor.CreateTCPConnection();
-    //     servidor.AcceptClient();
-    //     servidor.ReceiveFile( fname );
-
-    // }
 
 }

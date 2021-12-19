@@ -20,11 +20,11 @@ CDIR = src
 ODIR = build
 
 # list of header files
-_DEPS = server.h client.h mediator.h peer.h load_balancing.h
+_DEPS = receiver.h sender.h mediator.h peer.h load_balancing.h
 DEPS = $(patsubst %,$(HDIR)/%,$(_DEPS))
 
 # list of source code files ( replacing the .c/.cpp extension with .o )
-_OBJ = server.o client.o mediator.o peer.o load_balancing.o main.o
+_OBJ = receiver.o sender.o mediator.o peer.o load_balancing.o main.o
 OBJ = $(patsubst %, $(ODIR)/%,$(_OBJ))
 
 # used to create the build directory if it doesn't exist

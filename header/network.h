@@ -35,7 +35,7 @@ namespace LoadBalancing::Network{
     };
 
     // server identification 
-    struct ServerID{
+    struct ReceiverID{
         char ipstr[INET6_ADDRSTRLEN];   // server IP address
         int port;                       // server port
     };
