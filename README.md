@@ -1,63 +1,29 @@
-# SSC0904
+# P2P Load Balacing Application
 
-## TO DO
+Through this load balancing application, peers can run their executables on idle machines belonging to other peers. The peer that needs to run an executable elsewhere is called *sender*, as it will send its executable over the network; on the other hand, the peer that runs another's executable is called *receiver*.
 
-- "Hello World" each 0.5s
-- Append socket number to executable copy name and output file name
+This application employs a hybrid peer-to-peer architecture, in which a mediator server acts as an access point to the P2P network and mediates the connections by matching *sender* and *receiver*.
 
-- ler e enviar o executável por blocos para evitar estouro de heap
-- ```htonl()```, ```ntohl()```
-- once the child process is up, it must be killed before the parent quits
-- receiver can give up
-- maximum queue size, to many receivers or senders: drop
-- mediator-receiver connection could be maintained and receiver could listen to it with a thread, if the mediator decides to drop the receiver
+# Launching the application
 
-### Mediator
-
-Accept sender:
-- if exits receiver:
-    - send receiver socket
-    - pop receiver
-- if not exists receiver:
-    - push sender
-
-Accept receiver:
-- if exists sender:
-    - send receiver socket
-    - pop sender
-- if not exists sender:
-    - push receiver
-
-Functionalities not includede in the prototype:
-- receiver informs for how long it expects to be up
-- sender informs how long it beleives it will take
-- mediator matches sender and receiver
-
-
-## P2P
-
-- https://github.com/mitrapinaki/PeerToPeer
-- https://github.com/taylorconor/p2psc
-- https://github.com/um4ng-tiw/Peer-to-Peer-Socket-C
-
-## Execução
-
-Compilar com:
+Compile the **mediator** program with:
 
     make DEFS=-DMEDIATOR EXEC=mediator ODIR=build_mediator
 
+and launch:
+
+    ./mediator
+
+Compile the **peer** program with:
+
     make DEFS=-DPEER EXEC=peer ODIR=build_peer
 
-Executar:
+and launch:
+    
+    ./peer
 
-    ./server
-    ./client
+The mediator must be up before any peers are launched as peers will attempt to contact the mediator.
 
-https://www.ibm.com/docs/en/zos/2.3.0?topic=directives-conditional-compilation
+# Testing the application
 
-
-- conceito / embasamento
-- provavelmente a aplicação rodaria dentro de um container por segurança
-- peer to peer
-- mandar executável
-
+The ```test``` executable can be used to test the application. It outputs "Hello word!" every second, 10 times.
