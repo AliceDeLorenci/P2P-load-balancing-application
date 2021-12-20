@@ -33,6 +33,7 @@ Students:
 - Guilherme Ramon Rodrigues da Silva 							
 - Henrique Martins Fernandes 		  							
 - Rodolfo Cola Genaro 			 
+
 Teacher:
 - Dr. Jo Ueyama
 Universidade de São Paulo (USP), 2021.
