@@ -1,8 +1,8 @@
 # P2P Load Balacing Application
 
-Through this load balancing application, peers can run their executables on idle machines belonging to other peers. The peer that needs to run an executable elsewhere is called *sender*, as it will send its executable over the network; on the other hand, the peer that runs another's executable is called *receiver*.
+Through this load balancing application, peers can run their executable files on idle machines belonging to other peers. The peer that needs to run an executable elsewhere is called *sender*, as it will send its executable over the network; on the other hand, the peer that runs another's executable is called *receiver*.
 
-This application employs a hybrid peer-to-peer architecture, in which a mediator server acts as an access point to the P2P network and mediates the connections by matching *sender* and *receiver*.
+This application employs a hybrid peer-to-peer architecture, in which a mediator server acts as an access point to the P2P network and mediates the connections by matching *senders* to *receivers*.
 
 # Launching the application
 
