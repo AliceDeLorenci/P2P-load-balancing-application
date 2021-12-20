@@ -27,3 +27,12 @@ The mediator must be up before any peers are launched as peers will attempt to c
 # Testing the application
 
 The ```test``` executable can be used to test the application. It outputs "Hello word!" every second, 10 times.
+
+Students:
+- Alice Valença De Lorenci 			   						
+- Guilherme Ramon Rodrigues da Silva 							
+- Henrique Martins Fernandes 		  							
+- Rodolfo Cola Genaro 			 
+Teacher:
+- Dr. Jo Ueyama
+Universidade de São Paulo (USP), 2021.
