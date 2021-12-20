@@ -10,7 +10,7 @@ using namespace std::chrono;
  */
 int main(){
 
-    // Prints "Hello world" in intervals of 0.5 seconds.
+    // Prints "Hello world" in intervals of 1 second.
     for( int i=0; i<10; i++ ){
         std::cout << "Hello world!" << std::endl;
         sleep_for( milliseconds(1000) );

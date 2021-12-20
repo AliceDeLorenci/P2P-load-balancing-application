@@ -78,13 +78,9 @@ namespace LoadBalancing::Network::Mediator{
 
         }
 
-        //spdlog::info( "Peer IP address: {}", peer.ipstr );
-
         // receive peer type
         if( recv( peer.connection_socket, &peer.type, sizeof( int ), 0 ) < 0 )
             ExitWithMessage( "Error receiving peer type." );
-
-        //spdlog::info( "Peer type: {}", peer.type == RECEIVER ? "receiver" : "sender" );
 
         if( peer.type == RECEIVER ){
 
